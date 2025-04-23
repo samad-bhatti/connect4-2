@@ -18,13 +18,16 @@ public class GuiClient extends Application {
 		VBox root = new VBox(20);
 		root.setPrefSize(600, 400);
 		root.setAlignment(Pos.CENTER);
+		root.setStyle("-fx-background-color: #d0e7ff;"); // 💠 Sky blue to match Scene 2
 
 		Label titleLabel = new Label("Welcome to Connect 4!");
-		titleLabel.setFont(new Font("Arial", 28));
+		titleLabel.setFont(new Font("Arial Black", 32));
+		titleLabel.setStyle("-fx-text-fill: #003366;"); // Deep blue for contrast
 
 		HBox inputBox = new HBox(10);
 		inputBox.setAlignment(Pos.CENTER);
 		Label nameLabel = new Label("Enter name:");
+		nameLabel.setStyle("-fx-text-fill: #cc0000; -fx-font-size: 16px; -fx-font-weight: bold;");
 		TextField usernameField = new TextField();
 		usernameField.setPrefWidth(200);
 		inputBox.getChildren().addAll(nameLabel, usernameField);
@@ -32,9 +35,10 @@ public class GuiClient extends Application {
 		Button joinButton = new Button("JOIN");
 		joinButton.setPrefWidth(100);
 		joinButton.setFont(new Font(16));
+		joinButton.setStyle("-fx-background-color: #FFD700; -fx-text-fill: black; -fx-font-weight: bold;");
 
 		Label errorLabel = new Label();
-		errorLabel.setStyle("-fx-text-fill: red;");
+		errorLabel.setStyle("-fx-text-fill: red; -fx-font-size: 14px;");
 
 		joinButton.setOnAction(e -> {
 			String username = usernameField.getText().trim();
@@ -53,13 +57,12 @@ public class GuiClient extends Application {
 						errorLabel.setText("");
 						System.out.println("✅ Username accepted! Proceed to lobby...");
 
-						// 👇 Switch to Lobby Scene
 						LobbyController lobby = new LobbyController(client, username);
 						lobby.show(stage);
 					}
 				});
 			}, () -> {
-				client.send("USERNAME:" + username);  // ✅ Sent only after streams are ready
+				client.send("USERNAME:" + username);
 			});
 
 			client.start();
