@@ -15,14 +15,29 @@ public class Client extends Thread {
 	private Consumer<String> callback;
 	private Runnable onConnected;
 
+	private Consumer<Message> messageHandler;
+	private String username;
+
 	public Client(Consumer<String> callback, Runnable onConnected) {
 		this.callback = callback;
 		this.onConnected = onConnected;
 	}
 
-	// ✅ Add this setter method to allow changing the callback (e.g. from LobbyController)
+	// Add this setter method to allow changing the callback
 	public void setMessageCallback(Consumer<String> callback) {
 		this.callback = callback;
+	}
+
+	public void setMessageHandler(Consumer<Message> handler) {
+		this.messageHandler = handler;
+	}
+
+	public void setUsername(String username) {
+		this.username = username;
+	}
+
+	public String getUsername() {
+		return username;
 	}
 
 	public void run() {
@@ -43,11 +58,17 @@ public class Client extends Thread {
 
 		while (true) {
 			try {
-				String message = in.readObject().toString();
-				if (callback != null) {
-					callback.accept(message);
+				Object obj = in.readObject(); // changed from .toString()
+
+				if (obj instanceof String && callback != null) {
+					callback.accept((String) obj); // system messages
+				} else if (obj instanceof Message && messageHandler != null) {
+					messageHandler.accept((Message) obj); // chat messages
 				}
+
 			} catch (Exception e) {
+				System.err.println("❌ Error receiving data");
+				e.printStackTrace();
 				break;
 			}
 		}
@@ -61,6 +82,18 @@ public class Client extends Thread {
 
 		try {
 			out.writeObject(data);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	public void send(Message msg) {
+		if (out == null) {
+			System.err.println("⚠️ Output stream not ready. Message not sent.");
+			return;
+		}
+
+		try {
+			out.writeObject(msg);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

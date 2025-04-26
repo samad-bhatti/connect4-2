@@ -36,14 +36,14 @@ public class GameOverController {
         Button rematchButton = new Button("Rematch");
         Button returnLobbyButton = new Button("Return to Lobby");
 
-        // ✅ Rematch returns to Lobby (Scene 2)
+        // Rematch returns to Lobby (Scene 2)
         rematchButton.setOnAction(e -> {
             LobbyController lobby = new LobbyController(client, playerName);
             lobby.show(stage);
             client.send("LOBBY_READY:" + playerName);
         });
 
-        // ✅ Return to Lobby goes to Login (Scene 1)
+        // Return to Lobby goes to Login (Scene 1)
         returnLobbyButton.setOnAction(e -> {
             GuiClient guiClient = new GuiClient();
             try {

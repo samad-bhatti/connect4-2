@@ -95,6 +95,7 @@ public class LobbyController {
                 statusLabel.setText("Game starting!");
                 timeline.stop();
                 // TODO: Transition to game board (Scene 3)
+                new GameBoard(client, username).show(stage);
             }
         });
 

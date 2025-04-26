@@ -18,7 +18,7 @@ public class GuiClient extends Application {
 		VBox root = new VBox(20);
 		root.setPrefSize(600, 400);
 		root.setAlignment(Pos.CENTER);
-		root.setStyle("-fx-background-color: #d0e7ff;"); // 💠 Sky blue to match Scene 2
+		root.setStyle("-fx-background-color: #d0e7ff;"); // Sky blue to match Scene 2
 
 		Label titleLabel = new Label("Welcome to Connect 4!");
 		titleLabel.setFont(new Font("Arial Black", 32));
