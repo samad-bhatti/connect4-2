@@ -27,7 +27,9 @@ public class GuiServer extends Application{
 
 	@Override
 	public void start(Stage primaryStage) {
-		primaryStage.setTitle("Server (Headless)");
+		primaryStage.setTitle("Server");
+		primaryStage.setWidth(300);
+		primaryStage.setHeight(100);
 		primaryStage.show();  // No layout, no error
 	}
 

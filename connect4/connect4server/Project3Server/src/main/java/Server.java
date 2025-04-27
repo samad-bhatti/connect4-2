@@ -10,6 +10,7 @@ public class Server {
 	ArrayList<ClientThread> clients = new ArrayList<>();
 	HashSet<String> usernames = new HashSet<>();
 	Queue<ClientThread> waitingLobby = new LinkedList<>();
+	GameState gameState;
 
 	TheServer server;
 
@@ -36,12 +37,14 @@ public class Server {
 	}
 
 	class ClientThread extends Thread {
+		ClientThread opponent; // track who the opponent is
 
 		Socket connection;
 		int count;
 		ObjectInputStream in;
 		ObjectOutputStream out;
 		String username = null;
+		GameState gameState;
 
 		ClientThread(Socket s, int count) {
 			this.connection = s;
@@ -85,31 +88,55 @@ public class Server {
 								} else {
 									ClientThread player1 = waitingLobby.poll();
 									if (player1 != null) {
+										player1.opponent = this;
+										this.opponent = player1;
+
 										player1.out.writeObject("PLAYER2_JOINED:" + this.username);
 										this.out.writeObject("PLAYER1_JOINED:" + player1.username);
+										GameState newGame = new GameState();
+										this.gameState = newGame;
+										player1.gameState = newGame;
 
 										player1.out.writeObject("TURN:YOU");
 										this.out.writeObject("TURN:OPPONENT");
+
 									}
 								}
 							}
 						}
 
 						else if (data.startsWith("MOVE:")) {
+							System.out.println("Am I inside?");
 							int col = Integer.parseInt(data.substring(5));
+							System.out.println("Received move for column: " + col);
 
-							synchronized (clients) {
-								for (ClientThread ct : clients) {
-									if (ct != null && ct.username != null) {
-										if (ct == this) {
-											ct.out.writeObject("YOUR_MOVE_CONFIRMED:" + col);
-											ct.out.writeObject("TURN:OPPONENT");
-										} else {
-											ct.out.writeObject("OPPONENT_MOVED:" + col);
-											ct.out.writeObject("TURN:YOU");
+							if (gameState.makeMove(col)) {
+								System.out.println("Debugging 2");
+
+								if (this != null && this.username != null) {
+									this.out.writeObject("YOUR_MOVE_CONFIRMED:" + col);
+									this.out.writeObject("TURN:OPPONENT");
+									System.out.println("move confirmed");
+								}
+
+								if (gameState.checkWin(gameState.getCurrentPlayer().equals("RED") ? "YELLOW" : "RED")) {
+									synchronized (clients) {
+										for (ClientThread ct : clients) {
+											if (ct != null && ct.username != null) {
+												ct.out.writeObject("GAME_OVER: " + this.username + " WINS!");
+												System.out.println("win");
+											}
 										}
 									}
 								}
+
+								if (opponent != null && opponent.username != null) {
+									opponent.out.writeObject("OPPONENT_MOVED:" + col);
+									opponent.out.writeObject("TURN:YOU");
+									System.out.println("opp");
+								}
+							} else {
+								out.writeObject("INVALID_MOVE"); // Send an error message if move is invalid
 							}
 						}
 
@@ -117,14 +144,16 @@ public class Server {
 					}
 
 					// 🟰 NEW: Handle incoming Message objects
-					else if (obj instanceof Message) {
-						Message msg = (Message) obj;
+					else if (obj instanceof ServerMessage) {
+						ServerMessage msg = (ServerMessage) obj;
 						broadcastChat(msg);
 					}
 
 				} catch (Exception e) {
 					System.err.println("Connection lost with client #" + count);
-					clients.remove(this);
+					synchronized(clients) {
+						clients.remove(this);
+					}
 					if (username != null) {
 						synchronized (usernames) {
 							usernames.remove(username);
@@ -136,13 +165,14 @@ public class Server {
 		}
 
 		// 💬 Broadcast chat message to all clients
-		private void broadcastChat(Message msg) {
+		private void broadcastChat(ServerMessage msg) {
 			synchronized (clients) {
 				for (ClientThread ct : clients) {
 					try {
 						ct.out.writeObject(msg);
 					} catch (Exception e) {
 						System.err.println("Failed to send chat message to client.");
+						clients.remove(ct);
 					}
 				}
 			}

@@ -1,5 +1,6 @@
-Server.class
+GameState.class
 GuiServer.class
-Message.class
+Server.class
+ServerMessage.class
 Server$ClientThread.class
 Server$TheServer.class

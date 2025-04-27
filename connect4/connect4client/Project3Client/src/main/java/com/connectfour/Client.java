@@ -3,14 +3,16 @@ package com.connectfour;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.net.Socket;
 import java.util.function.Consumer;
 
 public class Client extends Thread {
-
 	Socket socketClient;
 	ObjectOutputStream out;
 	ObjectInputStream in;
+
+	private Socket socket;
 
 	private Consumer<String> callback;
 	private Runnable onConnected;
@@ -52,7 +54,7 @@ public class Client extends Thread {
 			}
 
 		} catch (Exception e) {
-			System.err.println("❌ Connection error");
+			System.err.println("Connection error");
 			e.printStackTrace();
 		}
 
@@ -61,23 +63,47 @@ public class Client extends Thread {
 				Object obj = in.readObject(); // changed from .toString()
 
 				if (obj instanceof String && callback != null) {
-					callback.accept((String) obj); // system messages
+					callback.accept((String) obj); // Handle string messages
+				} else if (obj instanceof GameMove && callback != null) {
+					GameMove move = (GameMove) obj;
+					handleGameMove(move);
 				} else if (obj instanceof Message && messageHandler != null) {
-					messageHandler.accept((Message) obj); // chat messages
+					messageHandler.accept((Message) obj); // Handle chat messages
 				}
 
 			} catch (Exception e) {
-				System.err.println("❌ Error receiving data");
+				System.err.println("Error receiving data");
 				e.printStackTrace();
 				break;
 			}
 		}
 	}
+	private void handleGameMove(GameMove move) {
+		// Process the move and update the game board
+		String playerName = move.getPlayerName();
+		int row = move.getRow();
+		int col = move.getCol();
+		String color = move.getColor();
+
+		// Update the UI or game state with the move
+		// Example:
+		System.out.println(playerName + " made a move at (" + row + ", " + col + ") with color: " + color);
+
+		// You should update your game board here using this data
+		// For example, by calling a method that updates the UI or game state
+		// dropDisc(row, col, color);
+
+		// Example of sending back a message:
+		// send("MOVE_RECEIVED");
+	}
+	//send data as a string
 
 	public void send(String data) {
 		if (out == null) {
-			System.err.println("⚠️ Output stream not ready. Message not sent.");
+			System.err.println("Output stream not ready. Message not sent.");
 			return;
+		} else {
+			System.out.println("SENDING!!!(Debug) " + data);
 		}
 
 		try {
@@ -86,14 +112,15 @@ public class Client extends Thread {
 			e.printStackTrace();
 		}
 	}
-	public void send(Message msg) {
+	//send any serializable object (GameMove, Message, etc)
+	public void send(Serializable obj) {
 		if (out == null) {
-			System.err.println("⚠️ Output stream not ready. Message not sent.");
+			System.err.println("Output stream not ready. Message not sent.");
 			return;
 		}
 
 		try {
-			out.writeObject(msg);
+			out.writeObject(obj);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

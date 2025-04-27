@@ -12,6 +12,7 @@ import javafx.stage.Stage;
 public class GuiClient extends Application {
 
 	Client client;
+	boolean myTurn = false;
 
 	@Override
 	public void start(Stage stage) {
@@ -55,7 +56,7 @@ public class GuiClient extends Application {
 						errorLabel.setText("This name is being used. Please try another username.");
 					} else if (message.equals("USERNAME_ACCEPTED")) {
 						errorLabel.setText("");
-						System.out.println("✅ Username accepted! Proceed to lobby...");
+						System.out.println("Username accepted! Proceed to lobby...");
 
 						LobbyController lobby = new LobbyController(client, username);
 						lobby.show(stage);
@@ -63,6 +64,7 @@ public class GuiClient extends Application {
 				});
 			}, () -> {
 				client.send("USERNAME:" + username);
+				System.out.println("Username: " + username);
 			});
 
 			client.start();
@@ -75,6 +77,7 @@ public class GuiClient extends Application {
 		stage.setScene(scene);
 		stage.show();
 	}
+
 
 	public static void main(String[] args) {
 		launch(args);

@@ -10,6 +10,8 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.stage.Stage;
 
+
+
 public class GameBoard {
 
     private final Client client;
@@ -124,6 +126,22 @@ public class GameBoard {
         }
     }
 
+//    private void handleMove(int col) {
+//        if (!myTurn) return;
+//
+//        int row = getAvailableRow(col);
+//        if (row == -1) return;
+//
+//        discs[row][col].setFill(myColor);
+//        String colorName = myColor.equals(Color.RED) ? "RED" : "YELLOW";
+//
+//        // Send the move to the server for broadcast
+//        GameMove move = new GameMove(username, row, col, colorName);
+//        client.send("MOVE:" + move);
+//        System.out.println("The move is sent: " + move);
+//        toggleTurn();
+//    }
+
     private void handleMove(int col) {
         if (!myTurn) return;
 
@@ -131,6 +149,11 @@ public class GameBoard {
         if (row == -1) return;
 
         discs[row][col].setFill(myColor);
+        String colorName = myColor.equals(Color.RED) ? "RED" : "YELLOW";
+
+        // Send just the column number to the server
+        client.send("MOVE:" + col);
+        System.out.println("The move is sent for column: " + col);
         toggleTurn();
     }
 

@@ -1,7 +1,8 @@
-com/connectfour/GameOverTest.class
-com/connectfour/LobbyController.class
-com/connectfour/Message.class
-com/connectfour/Client.class
-com/connectfour/GameOverController.class
-com/connectfour/GameBoard.class
-com/connectfour/GuiClient.class
+com\connectfour\GameOverController.class
+com\connectfour\GameMove.class
+com\connectfour\GameBoard.class
+com\connectfour\Message.class
+com\connectfour\GuiClient.class
+com\connectfour\Client.class
+com\connectfour\LobbyController.class
+com\connectfour\GameOverTest.class
