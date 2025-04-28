@@ -153,7 +153,7 @@ public class GameBoard {
 
         // Send just the column number to the server
         client.send("MOVE:" + col);
-        System.out.println("The move is sent for column: " + col);
+        System.out.println("The move is sen t for column: " + col);
         toggleTurn();
     }
 

@@ -107,17 +107,22 @@ public class GameState {
 
     // Switch turns
     public void switchPlayer() {
-        currentPlayer = (currentPlayer.equals("RED")) ? "YELLOW" : "RED";
+        currentPlayer = (currentPlayer.equals("RED")) ? "GOLD" : "RED";
     }
     // Wrapper method to match the ClientThread logic
-    public boolean makeMove(int col) {
-        int row = placeDisc(col, currentPlayer);
+    public boolean makeMove(int col, String player) {
+        if (!player.equals(currentPlayer)) {
+            return false; // Wrong player trying to move
+        }
+
+        int row = placeDisc(col, player);
         if (row != -1) {
             switchPlayer(); // After a valid move, switch player
             return true;
         }
         return false; // Invalid move (column full)
     }
+
 
 
     // Print the board (for debugging)

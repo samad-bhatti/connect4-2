@@ -10,7 +10,6 @@ public class Server {
 	ArrayList<ClientThread> clients = new ArrayList<>();
 	HashSet<String> usernames = new HashSet<>();
 	Queue<ClientThread> waitingLobby = new LinkedList<>();
-	GameState gameState;
 
 	TheServer server;
 
@@ -37,8 +36,7 @@ public class Server {
 	}
 
 	class ClientThread extends Thread {
-		ClientThread opponent; // track who the opponent is
-
+		ClientThread opponent;
 		Socket connection;
 		int count;
 		ObjectInputStream in;
@@ -85,6 +83,7 @@ public class Server {
 							synchronized (waitingLobby) {
 								if (waitingLobby.isEmpty()) {
 									waitingLobby.add(this);
+									System.out.println(username + " is waiting in the lobby...");
 								} else {
 									ClientThread player1 = waitingLobby.poll();
 									if (player1 != null) {
@@ -93,6 +92,7 @@ public class Server {
 
 										player1.out.writeObject("PLAYER2_JOINED:" + this.username);
 										this.out.writeObject("PLAYER1_JOINED:" + player1.username);
+
 										GameState newGame = new GameState();
 										this.gameState = newGame;
 										player1.gameState = newGame;
@@ -100,50 +100,52 @@ public class Server {
 										player1.out.writeObject("TURN:YOU");
 										this.out.writeObject("TURN:OPPONENT");
 
+										System.out.println("Matched " + player1.username + " vs " + this.username);
 									}
 								}
 							}
 						}
 
 						else if (data.startsWith("MOVE:")) {
-							System.out.println("Am I inside?");
 							int col = Integer.parseInt(data.substring(5));
-							System.out.println("Received move for column: " + col);
+							System.out.println("Player " + username + " attempted move at column " + col);
 
-							if (gameState.makeMove(col)) {
-								System.out.println("Debugging 2");
+							if (gameState != null) {
+								if (gameState.makeMove(col, gameState.getCurrentPlayer())) {
+									System.out.println(username + " made a valid move at column " + col);
 
-								if (this != null && this.username != null) {
 									this.out.writeObject("YOUR_MOVE_CONFIRMED:" + col);
 									this.out.writeObject("TURN:OPPONENT");
-									System.out.println("move confirmed");
-								}
 
-								if (gameState.checkWin(gameState.getCurrentPlayer().equals("RED") ? "YELLOW" : "RED")) {
-									synchronized (clients) {
-										for (ClientThread ct : clients) {
-											if (ct != null && ct.username != null) {
-												ct.out.writeObject("GAME_OVER: " + this.username + " WINS!");
-												System.out.println("win");
+									if (gameState.checkWin(gameState.getCurrentPlayer().equals("RED") ? "YELLOW" : "RED")) {
+										synchronized (clients) {
+											for (ClientThread ct : clients) {
+												if (ct != null && ct.username != null) {
+													ct.out.writeObject("GAME_OVER: " + this.username + " WINS!");
+												}
 											}
 										}
+										System.out.println(username + " wins!");
 									}
-								}
 
-								if (opponent != null && opponent.username != null) {
-									opponent.out.writeObject("OPPONENT_MOVED:" + col);
-									opponent.out.writeObject("TURN:YOU");
-									System.out.println("opp");
+									if (opponent != null && opponent.username != null) {
+										opponent.out.writeObject("OPPONENT_MOVED:" + col);
+										opponent.out.writeObject("TURN:YOU");
+										System.out.println("Move sent to opponent: " + opponent.username);
+									}
+								} else {
+									out.writeObject("INVALID_MOVE"); // invalid column or full column
+									System.out.println("Invalid move by " + username);
 								}
 							} else {
-								out.writeObject("INVALID_MOVE"); // Send an error message if move is invalid
+								out.writeObject("INVALID_MOVE_NO_GAME");
+								System.out.println("Move attempted but no active game for " + username);
 							}
 						}
 
 						System.out.println("Client #" + count + " -> " + data);
 					}
 
-					// 🟰 NEW: Handle incoming Message objects
 					else if (obj instanceof ServerMessage) {
 						ServerMessage msg = (ServerMessage) obj;
 						broadcastChat(msg);
@@ -151,7 +153,7 @@ public class Server {
 
 				} catch (Exception e) {
 					System.err.println("Connection lost with client #" + count);
-					synchronized(clients) {
+					synchronized (clients) {
 						clients.remove(this);
 					}
 					if (username != null) {
@@ -164,7 +166,6 @@ public class Server {
 			}
 		}
 
-		// 💬 Broadcast chat message to all clients
 		private void broadcastChat(ServerMessage msg) {
 			synchronized (clients) {
 				for (ClientThread ct : clients) {

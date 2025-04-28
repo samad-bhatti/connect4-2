@@ -21,7 +21,7 @@ public class LobbyController {
     private Label player2Label;
     private Label statusLabel;
 
-    // 🎨 Connect Four style
+    // Connect Four style
     private static final String BACKGROUND_STYLE = "-fx-background-color: #d0e7ff;";
     private static final String TITLE_STYLE = "-fx-font-family: 'Arial'; -fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #003366;";
     private static final String PLAYER1_STYLE = "-fx-font-family: 'Arial'; -fx-font-size: 18px; -fx-text-fill: #cc0000;"; // 🔴 Red
@@ -63,16 +63,17 @@ public class LobbyController {
         client.setMessageCallback(message -> {
             Platform.runLater(() -> {
                 if (message.startsWith("PLAYER2_JOINED:")) {
-                    String player2 = message.substring("PLAYER2_JOINED:".length());
+                    player2 = message.substring("PLAYER2_JOINED:".length()); //
                     player2Label.setText("Player 2: " + player2);
                     player2Label.setStyle(PLAYER2_STYLE);
                     statusLabel.setText("Game starting!");
                     startCountdown(stage);
                 } else if (message.startsWith("PLAYER1_JOINED:")) {
-                    String player1 = message.substring("PLAYER1_JOINED:".length());
+                    player1 = message.substring("PLAYER1_JOINED:".length());
                     player1Label.setText("Player 1: " + player1);
                     player1Label.setStyle(PLAYER1_STYLE);
-                    player2Label.setText("Player 2: " + username);
+                    player2 = username;
+                    player2Label.setText("Player 2: " + player2);
                     player2Label.setStyle(PLAYER2_STYLE);
                     statusLabel.setText("Game starting!");
                     startCountdown(stage);

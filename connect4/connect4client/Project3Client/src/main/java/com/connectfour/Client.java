@@ -12,7 +12,7 @@ public class Client extends Thread {
 	ObjectOutputStream out;
 	ObjectInputStream in;
 
-	private Socket socket;
+//	private Socket socket;
 
 	private Consumer<String> callback;
 	private Runnable onConnected;
@@ -64,10 +64,13 @@ public class Client extends Thread {
 
 				if (obj instanceof String && callback != null) {
 					callback.accept((String) obj); // Handle string messages
+					System.out.println("Debugging 1: " + obj);
 				} else if (obj instanceof GameMove && callback != null) {
 					GameMove move = (GameMove) obj;
+					System.out.println("Debugging 2: " + obj);
 					handleGameMove(move);
 				} else if (obj instanceof Message && messageHandler != null) {
+					System.out.println("Debugging 3: " + obj);
 					messageHandler.accept((Message) obj); // Handle chat messages
 				}
 
